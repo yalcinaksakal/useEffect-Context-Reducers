@@ -1,8 +1,9 @@
-import React, { useEffect, useReducer } from "react";
+import React, { useContext, useEffect, useReducer } from "react";
 
 import Card from "../UI/Card/Card";
 import classes from "./Login.module.css";
 import Button from "../UI/Button/Button";
+import AuthContext from "../../store/auth-context";
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -44,26 +45,25 @@ const Login = props => {
     isFormValid: null,
   });
 
+  const ctx = useContext(AuthContext);
+  const { isEmailValid, isPwdValid } = state;
   useEffect(() => {
     const identifier = setTimeout(() => {
+      console.log("validating");
       dispatch({ type: "FORM_CHECK" });
     }, 500);
     return () => {
       clearTimeout(identifier);
     };
-  }, [state.pwd, state.email]);
+  }, [isEmailValid, isPwdValid]);
 
-  const inputChangeHandler = (type, val) => {
+  const inputChangeHandler = (type, val = null) => {
     dispatch({ type: type, val: val });
-  };
-
-  const inputValidateHandler = type => {
-    dispatch({ type: type });
   };
 
   const submitHandler = event => {
     event.preventDefault();
-    props.onLogin(state.email, state.pwd);
+    ctx.onLogin(state.email, state.pwd);
   };
   return (
     <Card className={classes.login}>
@@ -79,7 +79,7 @@ const Login = props => {
             id="email"
             value={state.email}
             onChange={e => inputChangeHandler("EMAIL_INPUT", e.target.value)}
-            onBlur={() => inputValidateHandler("EMAIL_CHECK")}
+            onBlur={() => inputChangeHandler("EMAIL_CHECK")}
           />
         </div>
         <div
@@ -93,7 +93,7 @@ const Login = props => {
             id="password"
             value={state.pwd}
             onChange={e => inputChangeHandler("PWD_INPUT", e.target.value)}
-            onBlur={() => inputValidateHandler("PWD_CHECK")}
+            onBlur={() => inputChangeHandler("PWD_CHECK")}
           />
         </div>
         <div className={classes.actions}>
