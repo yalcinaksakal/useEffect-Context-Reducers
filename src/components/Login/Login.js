@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useReducer } from "react";
-
+import Input from "../UI/Input/Input";
 import Card from "../UI/Card/Card";
 import classes from "./Login.module.css";
 import Button from "../UI/Button/Button";
@@ -68,34 +68,22 @@ const Login = props => {
   return (
     <Card className={classes.login}>
       <form onSubmit={submitHandler}>
-        <div
-          className={`${classes.control} ${
-            state.isEmailValid === false ? classes.invalid : ""
-          }`}
-        >
-          <label htmlFor="email">E-Mail</label>
-          <input
-            type="email"
-            id="email"
-            value={state.email}
-            onChange={e => inputChangeHandler("EMAIL_INPUT", e.target.value)}
-            onBlur={() => inputChangeHandler("EMAIL_CHECK")}
-          />
-        </div>
-        <div
-          className={`${classes.control} ${
-            state.isPwdValid === false ? classes.invalid : ""
-          }`}
-        >
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            value={state.pwd}
-            onChange={e => inputChangeHandler("PWD_INPUT", e.target.value)}
-            onBlur={() => inputChangeHandler("PWD_CHECK")}
-          />
-        </div>
+        <Input
+          isValid={isEmailValid}
+          type="email"
+          value={state.email}
+          changeHandler={inputChangeHandler}
+          inputAction="EMAIL_INPUT"
+          blurAction="EMAIL_CHECK"
+        />
+        <Input
+          isValid={isPwdValid}
+          type="password"
+          value={state.pwd}
+          changeHandler={inputChangeHandler}
+          inputAction="PWD_INPUT"
+          blurAction="PWD_CHECK"
+        />
         <div className={classes.actions}>
           <Button
             type="submit"
