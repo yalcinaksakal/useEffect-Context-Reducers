@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useReducer } from "react";
+import React, { useContext, useEffect, useReducer, useRef } from "react";
 import Input from "../UI/Input/Input";
 import Card from "../UI/Card/Card";
 import classes from "./Login.module.css";
@@ -24,14 +24,14 @@ const reducer = (state, action) => {
     case "PWD_CHECK":
       return { ...state, isPwdValid: state.pwd.trim().length > 6 };
     case "FORM_CHECK":
-      return { ...state, isFORMValid: state.isEmailValid && state.isPwdValid };
+      return { ...state, isFormValid: state.isEmailValid && state.isPwdValid };
     default:
       return {
         email: "",
         pwd: "",
         isPwdValid: null,
         isEmailValid: null,
-        isFORMValid: null,
+        isFormValid: null,
       };
   }
 };
@@ -44,7 +44,8 @@ const Login = props => {
     isEmailValid: null,
     isFormValid: null,
   });
-
+  const emailRef = useRef();
+  const pwdRef = useRef();
   const ctx = useContext(AuthContext);
   const { isEmailValid, isPwdValid } = state;
   useEffect(() => {
@@ -63,12 +64,15 @@ const Login = props => {
 
   const submitHandler = event => {
     event.preventDefault();
-    ctx.onLogin(state.email, state.pwd);
+    if (state.isFormValid) ctx.onLogin(state.email, state.pwd);
+    else if (!state.isEmailValid) emailRef.current.focus();
+    else pwdRef.current.focus();
   };
   return (
     <Card className={classes.login}>
       <form onSubmit={submitHandler}>
         <Input
+          ref={emailRef}
           isValid={isEmailValid}
           type="email"
           value={state.email}
@@ -77,6 +81,7 @@ const Login = props => {
           blurAction="EMAIL_CHECK"
         />
         <Input
+          ref={pwdRef}
           isValid={isPwdValid}
           type="password"
           value={state.pwd}
@@ -85,11 +90,7 @@ const Login = props => {
           blurAction="PWD_CHECK"
         />
         <div className={classes.actions}>
-          <Button
-            type="submit"
-            className={classes.btn}
-            disabled={!state.isFORMValid}
-          >
+          <Button type="submit" className={classes.btn}>
             Login
           </Button>
         </div>
