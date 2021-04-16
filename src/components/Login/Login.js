@@ -1,128 +1,111 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useReducer } from "react";
 
 import Card from "../UI/Card/Card";
 import classes from "./Login.module.css";
 import Button from "../UI/Button/Button";
 
-const emailReducer = (state, action) => {
-  if (action.type === "USER_INPUT") {
-    return { value: action.val, isValid: action.val.includes("@") };
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "EMAIL_INPUT":
+      return {
+        ...state,
+        email: action.val,
+        isEmailValid: action.val.includes("@"),
+      };
+    case "EMAIL_CHECK":
+      return { ...state, isEmailValid: state.email.includes("@") };
+    case "PWD_INPUT":
+      return {
+        ...state,
+        pwd: action.val,
+        isPwdValid: action.val.trim().length > 6,
+      };
+    case "PWD_CHECK":
+      return { ...state, isPwdValid: state.pwd.trim().length > 6 };
+    case "FORM_CHECK":
+      return { ...state, isFORMValid: state.isEmailValid && state.isPwdValid };
+    default:
+      return {
+        email: "",
+        pwd: "",
+        isPwdValid: null,
+        isEmailValid: null,
+        isFORMValid: null,
+      };
   }
-
-  if (action.type === "INPUT_BLUR") {
-    return { value: state.value, isValid: state.value.includes("@") };
-  }
-  return { value: "", isValid: false };
-};
-const pwdReducer = (state, action) => {
-  if (action.type === "USER_INPUT") {
-    return { value: action.val, isValid: action.val.trim().length > 6 };
-  }
-
-  if (action.type === "INPUT_BLUR") {
-    return { value: state.value, isValid: state.value.trim().length > 6 };
-  }
-
-  return { value: "", isValid: false };
 };
 
 const Login = props => {
-  // const [enteredEmail, setEnteredEmail] = useState("");
-  // const [emailIsValid, setEmailIsValid] = useState();
-  // const [enteredPassword, setEnteredPassword] = useState("");
-  // const [passwordIsValid, setPasswordIsValid] = useState("");
-  const [formIsValid, setFormIsValid] = useState(false);
-  // const [consolMsg, setConsolMsg] = useState("");
-
-  const [emailState, dispatchEmail] = useReducer(emailReducer, {
-    value: "",
-    isValid: null,
+  const [state, dispatch] = useReducer(reducer, {
+    email: "",
+    pwd: "",
+    isPwdValid: null,
+    isEmailValid: null,
+    isFormValid: null,
   });
 
-  const [pwdState, dispatchPwd] = useReducer(pwdReducer, {
-    value: "",
-    isValid: null,
-  });
-  // side effect function
-  //if no dependency is given useEffect will run on each render
-  // if [] is given as dependency useEffect will run just only on first render
-  //[some variables] if one of dependent variable changes
   useEffect(() => {
-    // setConsolMsg(prevState => prevState + "EFFECT running\n");
-    console.log("Use Effect");
     const identifier = setTimeout(() => {
-      // setConsolMsg(prevState => prevState + "checking validity\n");
-      console.log("validating");
-      setFormIsValid(emailState.isValid && pwdState.isValid);
+      dispatch({ type: "FORM_CHECK" });
     }, 500);
-    // anonymous clean up function
     return () => {
-      // setConsolMsg(prevState => prevState + "clearing timeout\n");
       clearTimeout(identifier);
     };
-  }, [emailState, pwdState]);
+  }, [state.pwd, state.email]);
 
-  const emailChangeHandler = event => {
-    dispatchEmail({ type: "USER_INPUT", val: event.target.value });
-    // setEnteredEmail(event.target.value);
+  const inputChangeHandler = (type, val) => {
+    dispatch({ type: type, val: val });
   };
 
-  const passwordChangeHandler = event => {
-    dispatchPwd({ type: "USER_INPUT", val: event.target.value });
-  };
-
-  const validateEmailHandler = () => {
-    dispatchEmail({ type: "INPUT_BLUR" });
-  };
-
-  const validatePasswordHandler = () => {
-    dispatchPwd({ type: "INPUT_BLUR" });
+  const inputValidateHandler = type => {
+    dispatch({ type: type });
   };
 
   const submitHandler = event => {
     event.preventDefault();
-    props.onLogin(emailState.value, pwdState.value);
+    props.onLogin(state.email, state.pwd);
   };
-
   return (
     <Card className={classes.login}>
       <form onSubmit={submitHandler}>
         <div
           className={`${classes.control} ${
-            emailState.isValid === false ? classes.invalid : ""
+            state.isEmailValid === false ? classes.invalid : ""
           }`}
         >
           <label htmlFor="email">E-Mail</label>
           <input
             type="email"
             id="email"
-            value={emailState.value}
-            onChange={emailChangeHandler}
-            onBlur={validateEmailHandler}
+            value={state.email}
+            onChange={e => inputChangeHandler("EMAIL_INPUT", e.target.value)}
+            onBlur={() => inputValidateHandler("EMAIL_CHECK")}
           />
         </div>
         <div
           className={`${classes.control} ${
-            pwdState.isValid === false ? classes.invalid : ""
+            state.isPwdValid === false ? classes.invalid : ""
           }`}
         >
           <label htmlFor="password">Password</label>
           <input
             type="password"
             id="password"
-            value={pwdState.value}
-            onChange={passwordChangeHandler}
-            onBlur={validatePasswordHandler}
+            value={state.pwd}
+            onChange={e => inputChangeHandler("PWD_INPUT", e.target.value)}
+            onBlur={() => inputValidateHandler("PWD_CHECK")}
           />
         </div>
         <div className={classes.actions}>
-          <Button type="submit" className={classes.btn} disabled={!formIsValid}>
+          <Button
+            type="submit"
+            className={classes.btn}
+            disabled={!state.isFORMValid}
+          >
             Login
           </Button>
         </div>
       </form>
-
-      {/* <p>{consolMsg}</p> */}
     </Card>
   );
 };
