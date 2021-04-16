@@ -1,41 +1,52 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 
-import Card from '../UI/Card/Card';
-import classes from './Login.module.css';
-import Button from '../UI/Button/Button';
+import Card from "../UI/Card/Card";
+import classes from "./Login.module.css";
+import Button from "../UI/Button/Button";
 
-const Login = (props) => {
-  const [enteredEmail, setEnteredEmail] = useState('');
+const Login = props => {
+  const [enteredEmail, setEnteredEmail] = useState("");
   const [emailIsValid, setEmailIsValid] = useState();
-  const [enteredPassword, setEnteredPassword] = useState('');
+  const [enteredPassword, setEnteredPassword] = useState("");
   const [passwordIsValid, setPasswordIsValid] = useState();
   const [formIsValid, setFormIsValid] = useState(false);
+  const [consolMsg, setConsolMsg] = useState("");
+  // side effect function
+  //if no dependency is given useEffect will run on each render
+  // if [] is given as dependency useEffect will run just only on first render
+  //[some variables] if one of dependent variable changes
+  useEffect(() => {
+    setConsolMsg(prevState => prevState + "EFFECT running\n");
+    const identifier = setTimeout(() => {
+      setConsolMsg(prevState => prevState + "checking validity\n");
+      setFormIsValid(
+        enteredEmail.includes("@") && enteredPassword.trim().length > 6
+      );
+    }, 500);
+    // anonymous clean up function
+    return () => {
+      setConsolMsg(prevState => prevState + "clearing timeout\n");
+      clearTimeout(identifier);
+    };
+  }, [enteredEmail, enteredPassword]);
 
-  const emailChangeHandler = (event) => {
+  const emailChangeHandler = event => {
     setEnteredEmail(event.target.value);
-
-    setFormIsValid(
-      event.target.value.includes('@') && enteredPassword.trim().length > 6
-    );
   };
 
-  const passwordChangeHandler = (event) => {
+  const passwordChangeHandler = event => {
     setEnteredPassword(event.target.value);
-
-    setFormIsValid(
-      event.target.value.trim().length > 6 && enteredEmail.includes('@')
-    );
   };
 
   const validateEmailHandler = () => {
-    setEmailIsValid(enteredEmail.includes('@'));
+    setEmailIsValid(enteredEmail.includes("@"));
   };
 
   const validatePasswordHandler = () => {
     setPasswordIsValid(enteredPassword.trim().length > 6);
   };
 
-  const submitHandler = (event) => {
+  const submitHandler = event => {
     event.preventDefault();
     props.onLogin(enteredEmail, enteredPassword);
   };
@@ -45,7 +56,7 @@ const Login = (props) => {
       <form onSubmit={submitHandler}>
         <div
           className={`${classes.control} ${
-            emailIsValid === false ? classes.invalid : ''
+            emailIsValid === false ? classes.invalid : ""
           }`}
         >
           <label htmlFor="email">E-Mail</label>
@@ -59,7 +70,7 @@ const Login = (props) => {
         </div>
         <div
           className={`${classes.control} ${
-            passwordIsValid === false ? classes.invalid : ''
+            passwordIsValid === false ? classes.invalid : ""
           }`}
         >
           <label htmlFor="password">Password</label>
@@ -77,6 +88,9 @@ const Login = (props) => {
           </Button>
         </div>
       </form>
+
+      <p>Console Log</p>
+      <p>{consolMsg}</p>
     </Card>
   );
 };
